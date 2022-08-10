@@ -1,0 +1,124 @@
+﻿
+
+@{
+    ViewData["Title"] = "Register";
+    Layout= null;
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>RightMove ADF-Registration</title>
+
+    <!-- ================= Favicon ================== -->
+    <!-- Standard -->
+    <link rel="shortcut icon" href="http://placehold.it/64.png/000/fff">
+    <!-- Retina iPad Touch Icon-->
+    <link rel="apple-touch-icon" sizes="144x144" href="http://placehold.it/144.png/000/fff">
+    <!-- Retina iPhone Touch Icon-->
+    <link rel="apple-touch-icon" sizes="114x114" href="http://placehold.it/114.png/000/fff">
+    <!-- Standard iPad Touch Icon-->
+    <link rel="apple-touch-icon" sizes="72x72" href="http://placehold.it/72.png/000/fff">
+    <!-- Standard iPhone Touch Icon-->
+    <link rel="apple-touch-icon" sizes="57x57" href="http://placehold.it/57.png/000/fff">
+
+    <!-- Styles -->
+    <link href="/assets/css/lib/font-awesome.min.css" rel="stylesheet">
+    <link href="/assets/css/lib/themify-icons.css" rel="stylesheet">
+    <link href="/assets/css/lib/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/lib/helper.css" rel="stylesheet">
+    <link href="/assets/css/style.css" rel="stylesheet">
+     <script src="/assets/js/lib/jquery.min.js"></script>
+        <script src="/js/mainConnection.js"></script>
+        <script src="~/js/jToast.js"></script>
+</head>
+
+<body class="bg-primary">
+
+    <div class="unix-login">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="login-content">
+                        <div class="login-logo">
+                            <a href="index.html"><span>User Registration</span></a>
+                        </div>
+                        <div class="login-form">
+                            <form id="frmRegistration">
+                                <div class="form-group">
+                                    <label>First Name *</label>
+                                    <input type="text" required class="form-control" id="firstName" name="firstName" placeholder="First Name">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Last Name </label>
+                                    <input type="text" class="form-control" placeholder="Last Name" id="lastName" name="lastName">
+                                </div>
+                                   <div class="form-group">
+                                    <label>Post code *</label>
+                                    <input type="text" required maxlength="6" min="6" class="form-control" placeholder="Post Code" id="postCode" name="postCode">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email address *</label>
+                                    <input type="email" required class="form-control" id="emailAddress" name="emailAddress" placeholder="Email">
+                                </div>
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <input type="password" required id="password" class="form-control" placeholder="Password">
+                                </div>
+                            
+                                <button type="submit" class="btn btn-primary btn-flat m-b-30 m-t-30">Register</button>
+                             
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script>
+let connection = getConnection();
+    $(document).ready(function () {
+    localStorage.clear();
+        $("#frmRegistration").submit(function(event) {
+            event.preventDefault();
+                var formData = new FormData();
+                formData.append("FirstName", $("#firstName").val());
+                formData.append("LastName", $("#lastName").val());
+                 formData.append("PostCode", $("#postCode").val());
+                formData.append("EmailAddress", $("#emailAddress").val());
+                 formData.append("Password", $("#password").val());
+
+                var request = new XMLHttpRequest();
+
+
+                if (request.readyState == XMLHttpRequest.DONE) {
+        alert(xhr.responseText);
+    }
+
+                request.onreadystatechange = function() {
+
+                      if (request.readyState == XMLHttpRequest.DONE) {
+                          if (this.status == 200) {
+                        showToast('User registered successfully !');
+                              $("#frmRegistration")[0].reset();
+                              //window.location.href = "/Home/Login";
+                    }
+                   }
+                };
+                request.open("POST", connection + "api/User/CreateUser");
+                request.send(formData);
+                console.log("req data====" + request);
+
+             
+            
+        });
+    });
+</script>
+</html>

@@ -1,0 +1,299 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "UserList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+        .switch {
+        position: relative;
+        display: inline-block;
+        width: 30px;
+        height: 20px;
+    }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: -13px;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 15px;
+            width: 15px;
+            left: 1px;
+            bottom: 3px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+    input:checked + .slider {
+        background-color: #28a745;
+    }
+    input:focus + .slider {
+        box-shadow: 0 0 1px #28a745;
+    }
+    input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+    }
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 34px;
+    }
+        .slider.round:before {
+            border-radius: 50%;
+        }
+</style>
+</style>
+  <div class="content-wrap">
+        <div class="main">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-8 p-r-0 title-margin-right">
+                        <div class="page-header">
+                            <div class="page-title">
+                                <h1>Hello, <span id="LoggedInPerson"></span></h1>
+                            </div>
+                        </div>  
+                    </div>
+                    <!-- /# column -->
+                    <div class="col-lg-4 p-l-0 title-margin-left">
+                        <div class="page-header">
+                            <div class="page-title">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="#">User List</a></li>
+                                    
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /# column -->
+                </div>
+                <!-- /# row -->
+                <section id="main-content">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card">
+                                <div class="card-title">
+                                   
+                                    
+                                </div>
+                                <div class="bootstrap-data-table-panel">
+                                    <div class="table-responsive">
+                                        <table id="row-select" class="tblUser display table table-borderd table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>First Name</th>
+                                                    <th>Last Name</th>
+                                                    <th>Email Address</th>
+                                                    <th>Post Code</th>
+                                                      <th>Lock/Unlcok</th>
+                                                    <th>Created ON</th>
+                                                    
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                           
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /# card -->
+                        </div>
+                        <!-- /# column -->
+                    </div>
+                    <!-- /# row -->
+
+               
+                </section>
+            </div>
+        </div>
+    </div>
+        <script src="/assets/js/lib/jquery.min.js"></script>
+       <script src="/js/mainConnection.js"></script>
+  <script>
+let connection = getConnection();
+$(document).ready(function() {
+   
+    var UserId = "";
+    if(localStorage.getItem("UserId")!=null)
+    {
+   $("#LoggedInPerson").text("Welcome Here "+localStorage.getItem("UserId"));
+        getUsers(); 
+    }
+    else
+    {
+        window.location.href = "/Home/Login";
+    }
+    
+
+    
+})
+$(document).on("click", ".clsDelete", function() {
+     UserId= $(this).attr("data-id");
+    console.log("Id====>" + UserId);
+    $("#myModal").modal("show");
+});
+$(document).on("click", "#deleteUser", function() {
+    $.post(connection + "api/User/DeleteUser", { 'Id': UserId}
+        , function(responce) {
+            console.log("Upcoming responce======>" + responce);
+            if (responce.StatusCode == 200) { 
+            $("#myModal").modal("hide");
+            showToast('User deleted successfully !');
+            getUsers();
+            }
+            
+        
+     });
+});
+$(document).on("click", "#canclUser", function() {
+    UserId = "";
+    $("#myModal").modal("hide");
+});
+    $(document).on('click', ".isfalseChecked", function () {
+        var model = '{IsLock:"' + $(this).prop('checked') +'",Id:"' + $(this).attr("id").split("_")[1] +'"}';
+         var StatusData = $(this).prop('checked');
+        var acctoken = '@HttpContextAccessor.HttpContext.Session.GetString("Token")';
+        console.log(acctoken);
+        $.post({
+            url:"https://localhost:7010/api/User/SetUserLockStatus",
+             headers: {
+                Authorization: 'Bearer ' + acctoken
+            },
+            dataType: "json",  
+            contentType: "application/json; charset=utf-8",
+            data:model,
+        success:function(response) { 
+            console.log(response);
+             if (response.StatusCode==200 && StatusData==true) {
+                    showToast('User lock successfully !');
+                  }
+                  else if (response.StatusCode==200 && StatusData==false) {
+                  showToast('User Unlock successfully !');
+                  }
+                  else {
+                        showToast('Some error occured !');
+                  }
+        }
+        })
+    })
+
+    //
+
+    //$(document).on('click', ".isfalseChecked", function () {
+    //      var StatusData = $(this).prop('checked');
+    //      var id = $(this).attr("id");
+    //      console.log("User data====>" + id);
+
+    //    $.post(connection + "api/User/SetUserLockStatus",
+    //    { 'Id':$(this).attr("id").split('_')[1],'IsLock':StatusData }, function (response) {
+    //              if (response.StatusCode==200 && StatusData==true) {
+    //                showToast('User lock successfully !');
+    //              }
+    //              else if (response.StatusCode==200 && StatusData==false) {
+    //              showToast('User Unlock successfully !');
+    //              }
+    //              else {
+    //                    showToast('Some error occured !');
+    //              }
+    //          });
+
+    //      });
+
+    //     function getUsers() { 
+    //         $.get(connection + "api/User/GetAllUser", function(responce) {
+
+    //             console.log("User list data======>" + JSON.stringify(responce.Entity));
+    //             var entity = responce.Entity;
+    //             var rawHtml = "";
+    //             for (var i = 0; i < responce.Entity.length; i++) {
+    //                 if (responce.Entity[i].IsLock == true) {
+    //                     rawHtml += "<tr class='tdDynamic'>" +
+    //                     "<td>" + responce.Entity[i].FirstName + "</td>" +
+    //                     "<td>" + responce.Entity[i].LastName + "</td>" +
+    //                     "<td>" + responce.Entity[i].EmailAddress + "</td>" +
+    //                     "<td>" + responce.Entity[i].PostCode + "</td>" +
+    //                     "<td><label class=switch S_"+responce.Entity[i].Id+"><input type='checkbox' Checked="+responce.Entity[i].IsLock+" class='isfalseChecked' id=chk_"+responce.Entity[i].Id+"><span class='slider round'></span></label></td>" +
+    //                      "<td>" + responce.Entity[i].ShowDate + "</td>" +
+    //                     "</tr>";
+    //                 }
+    //                 else {
+    //                 rawHtml += "<tr class='tdDynamic'>" +
+    //                     "<td>" + responce.Entity[i].FirstName + "</td>" +
+    //                     "<td>" + responce.Entity[i].LastName + "</td>" +
+    //                     "<td>" + responce.Entity[i].EmailAddress + "</td>" +
+    //                     "<td>" + responce.Entity[i].PostCode + "</td>" +
+    //                     "<td><label class=switch S_"+responce.Entity[i].Id+"><input type='checkbox' class='isfalseChecked' id=chk_"+responce.Entity[i].Id+"><span class='slider round'></span></label></td>" +
+    //                      "<td>" + responce.Entity[i].ShowDate + "</td>" +
+    //                     "</tr>";
+    //                 }
+
+    //                 console.log("My user data=====>" + responce.Entity[i].FirstName);
+    //             }
+    //             $("#row-select tbody").append(rawHtml);
+    //         });
+    //}
+    function getUsers() {
+        //var acctoken="@TempData["acctoken"]";
+        var acctoken = '@HttpContextAccessor.HttpContext.Session.GetString("Token")';
+        console.log(acctoken);
+        $.ajax({
+            type: "GET",
+            url: "https://localhost:7010/api/User/GetAllUser",
+            headers: {
+                Authorization: 'Bearer ' + acctoken
+            },
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(responce) {
+                var entity = responce.Entity;
+                var rawHtml = "";
+                debugger;
+                for (var i = 0; i < responce.Entity.length; i++) {
+
+                    if (responce.Entity[i].IsLock == 1) {
+                        rawHtml += "<tr class='tdDynamic'>" +
+                            "<td>" + responce.Entity[i].FirstName + "</td>" +
+                            "<td>" + responce.Entity[i].LastName + "</td>" +
+                            "<td>" + responce.Entity[i].EmailAddress + "</td>" +
+                            "<td>" + responce.Entity[i].PostCode + "</td>" +
+                            "<td><label class=switch S_" + responce.Entity[i].Id + "><input type='checkbox'  Checked=" + responce.Entity[i].IsLock + " class='isfalseChecked' id=chk_" + responce.Entity[i].Id + "><span class='slider round'></span></label></td>" +
+                                "<td>" + responce.Entity[i].ShowDate + "</td>" +
+                                "</tr>";
+                    }
+                    else {
+                        rawHtml += "<tr class='tdDynamic'>" +
+                            "<td>" + responce.Entity[i].FirstName + "</td>" +
+                            "<td>" + responce.Entity[i].LastName + "</td>" +
+                            "<td>" + responce.Entity[i].EmailAddress + "</td>" +
+                            "<td>" + responce.Entity[i].PostCode + "</td>" +
+                            "<td><label class=switch S_" + responce.Entity[i].Id + "><input type='checkbox'  class='isfalseChecked' id=chk_" + responce.Entity[i].Id + "><span class='slider round'></span></label></td>" +
+                                "<td>" + responce.Entity[i].ShowDate + "</td>" +
+                                "</tr>";
+                    }
+
+
+                }
+                $("#row-select tbody").append(rawHtml);
+            }
+
+        });
+    }
+
+
+</script>
+
